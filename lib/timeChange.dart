@@ -7,35 +7,27 @@ import "./utils/web.dart";
 class timeChange extends StatefulWidget {
   const timeChange({
     super.key,
-    required this.preStart,
-    required this.preEnd,
     required this.w,
     required this.cancel,
-    required this.seatId,
-    required this.date,
     required this.onFresh,
+    required this.bookStatus,
   });
 
-  final String preStart;
-  final String preEnd;
-  final cWeb w;
+  final CWeb w;
   final Function cancel;
-  final String seatId;
-  final String date;
   final Function onFresh;
+  final Map bookStatus;
 
   @override
   State<timeChange> createState() => _timeChangebody();
 }
 
 class _timeChangebody extends State<timeChange> {
-  late final cWeb w;
-  late final String preStart;
-  late final String preEnd;
+  late final CWeb w;
   late final Function cancel;
-  late final String seatId;
-  late final String date;
   late final Function onFresh;
+  late final Map bookStatus;
+
   Map timeSwitch = {"start": "", "end": ""};
 
   @override
@@ -138,10 +130,10 @@ class _timeChangebody extends State<timeChange> {
   }
 
   Future<void> bindchange() async {
-    List tmp1 = date.split("年");
-    List tmp2 = tmp1[1].split("月");
-    List tmp3 = tmp2[1].split("日");
-    String dates = "${tmp1[0]}-${tmp2[0]}-${tmp3[0]}";
+    String dates = bookStatus["date"]
+        .replaceFirst(RegExp(r'年'), "-")
+        .replaceFirst(RegExp(r'月'), "-")
+        .replaceFirst(RegExp(r'日'), "");
     List tmp = timeSwitch["start"].split(":");
     int timeStart = int.parse(tmp[0]) * 60 + int.parse(tmp[1]);
     tmp = timeSwitch["end"].split(":");
@@ -191,7 +183,7 @@ class _timeChangebody extends State<timeChange> {
       "date": date,
       "start": "$start",
       "end": "$end",
-      "seat": seatId
+      "seat": bookStatus["seatId"]
     });
     match = RegExp(r'系统已经为您预定好了');
     if (match.hasMatch(resp.body)) {
@@ -206,7 +198,7 @@ class _timeChangebody extends State<timeChange> {
 
   void selectTime() {
     Map multiData;
-    List tmp = timeStartEnd();
+    List tmp = timeStartEnd(bookStatus["start"], bookStatus["end"]);
     multiData = timeRange(tmp[0], tmp[1]);
     Pickers.showMultiLinkPicker(context,
         selectData: [timeSwitch["start"], timeSwitch["end"]],
@@ -223,89 +215,18 @@ class _timeChangebody extends State<timeChange> {
     });
   }
 
-  List timeStartEnd() {
-    var now = DateTime.now();
-    int nowStamp = now.hour * 60 + now.minute;
-    List tmp = preStart.split(":");
-    int preStartStamp = int.parse(tmp[0]) * 60 + int.parse(tmp[1]);
-    int startStamp = (nowStamp < preStartStamp ? preStartStamp : nowStamp);
-    int hour = startStamp ~/ 60;
-    int minute = startStamp % 60;
-    tmp = preEnd.split(":");
-    int preEndStamp = int.parse(tmp[0]) * 60 + int.parse(tmp[1]);
-    preEndStamp = preEndStamp - preEndStamp % 30;
-    String endTime =
-        "${preEndStamp ~/ 60}:${preEndStamp % 60 == 0 ? '00' : '30'}";
-
-    double timeNum = hour + minute / 60;
-    String startTime;
-    if (timeNum < 8) {
-      startTime = "8:00";
-    } else if (timeNum >= 22) {
-      startTime = "无可用时间";
-      endTime = "无可用时间";
-    } else if (minute < 30) {
-      startTime = "$hour:30";
-    } else {
-      startTime = "${hour + 1}:00";
-    }
-    if (startTime == endTime) {
-      return ["无可用时间", "无可用时间"];
-    } else {
-      return [startTime, endTime];
-    }
-  }
-
-  Map timeRange(startTime, endTime) {
-    if (startTime == "无可用时间") {
-      return {"无可用时间": "无可用时间"};
-    } else {
-      var startT = startTime.split(":");
-      startT = [double.parse(startT[0]), double.parse(startT[1])];
-      var endT = endTime.split(":");
-      endT = [double.parse(endT[0]), double.parse(endT[1])];
-      double startNum = 0;
-      double endNum = 0;
-      if (startT[1] == 0) {
-        startNum = startT[0];
-      } else if (startT[1] <= 30) {
-        startNum = startT[0] + 0.5;
-      } else {
-        startNum = startT[0] + 1;
-      }
-      if (endT[1] == 30) {
-        endNum = endT[0] + 0.5;
-      } else {
-        endNum = endT[0];
-      }
-      Map multiData = {};
-      for (double x = startNum; x < endNum; x += 0.5) {
-        String tmp1 = "${x.truncate()}:${x > x.truncate() ? '30' : '00'}";
-        multiData[tmp1] = [];
-        for (double y = x + 0.5; y <= endNum; y += 0.5) {
-          String tmp2 = "${y.truncate()}:${y > y.truncate() ? '30' : '00'}";
-          multiData[tmp1].add(tmp2);
-        }
-      }
-      return multiData;
-    }
-  }
-
   @override
   void initState() {
     super.initState();
     EasyLoading.instance.indicatorType = EasyLoadingIndicatorType.cubeGrid;
     EasyLoading.instance.maskType = EasyLoadingMaskType.clear;
     w = widget.w;
-    preStart = widget.preStart;
-    preEnd = widget.preEnd;
-    List tse = timeStartEnd();
+    bookStatus = widget.bookStatus;
+    List tse = timeStartEnd(bookStatus["start"], bookStatus["end"]);
     setState(() {
       timeSwitch = {"start": tse[0], "end": tse[1]};
     });
     cancel = widget.cancel;
-    seatId = widget.seatId;
-    date = widget.date;
     onFresh = widget.onFresh;
   }
 }

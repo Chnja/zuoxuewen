@@ -393,60 +393,6 @@ class _roomSelectbody extends State<roomSelect> {
     });
   }
 
-  List timeStartEnd() {
-    var now = DateTime.now();
-    num hour = now.hour;
-    num minute = now.minute;
-    double timeNum = hour + minute / 60;
-    String startTime;
-    String endTime = "22:30";
-    if (timeNum < 8) {
-      startTime = "8:00";
-    } else if (timeNum >= 22) {
-      startTime = "无可用时间";
-      endTime = "无可用时间";
-    } else if (minute < 30) {
-      startTime = "$hour:30";
-    } else {
-      startTime = "${hour + 1}:00";
-    }
-    return [startTime, endTime];
-  }
-
-  Map timeRange(startTime, endTime) {
-    if (startTime == "无可用时间") {
-      return {"无可用时间": "无可用时间"};
-    } else {
-      var startT = startTime.split(":");
-      startT = [double.parse(startT[0]), double.parse(startT[1])];
-      var endT = endTime.split(":");
-      endT = [double.parse(endT[0]), double.parse(endT[1])];
-      double startNum = 0;
-      double endNum = 0;
-      if (startT[1] == 0) {
-        startNum = startT[0];
-      } else if (startT[1] <= 30) {
-        startNum = startT[0] + 0.5;
-      } else {
-        startNum = startT[0] + 1;
-      }
-      if (endT[1] == 30) {
-        endNum = endT[0] + 0.5;
-      } else {
-        endNum = endT[0];
-      }
-      Map multiData = {};
-      for (double x = startNum; x < endNum; x += 0.5) {
-        String tmp1 = "${x.truncate()}:${x > x.truncate() ? '30' : '00'}";
-        multiData[tmp1] = [];
-        for (double y = x + 0.5; y <= endNum; y += 0.5) {
-          String tmp2 = "${y.truncate()}:${y > y.truncate() ? '30' : '00'}";
-          multiData[tmp1].add(tmp2);
-        }
-      }
-      return multiData;
-    }
-  }
 
   void bindBookButton() {
     if (booking["status"] == 0) {

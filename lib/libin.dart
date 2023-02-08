@@ -15,7 +15,7 @@ class LibIn extends StatelessWidget {
     Key? key,
     required this.w,
   }) : super(key: key);
-  final cWeb w;
+  final CWeb w;
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +36,14 @@ class libinbody extends StatefulWidget {
     Key? key,
     required this.w,
   }) : super(key: key);
-  final cWeb w;
+  final CWeb w;
 
   @override
   State<libinbody> createState() => _libinbody();
 }
 
 class _libinbody extends State<libinbody> {
-  late final cWeb w;
+  late final CWeb w;
   List bookshow = [
     {"value": "pz", "name": "凭证号"},
     {"value": "date", "name": "日　期"},
@@ -333,11 +333,12 @@ class _libinbody extends State<libinbody> {
         builder: (context) {
           return timeChange(
             w: w,
-            preStart: tmp[0],
-            preEnd: tmp[1],
             cancel: bindcancel,
-            seatId: _bookStatus.value["id"],
-            date: _bookStatus.value["date"],
+            bookStatus: {
+              "date": _bookStatus.value["date"],
+              "start": tmp[0],
+              "end": tmp[1]
+            },
             onFresh: refresh,
           );
         });

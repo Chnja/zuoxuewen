@@ -56,12 +56,7 @@ class zxwApp extends StatelessWidget {
                                     textAlign: TextAlign.left,
                                     style: TextStyle(
                                       fontSize: 30,
-                                      // color: Colors.red,
                                       fontWeight: FontWeight.w800,
-                                      // decoration: TextDecoration.underline,
-                                      // decorationColor: Colors.yellow,
-                                      // decorationThickness: 1
-                                      // backgroundColor: Colors.red
                                     )))
                           ],
                         )),
@@ -86,7 +81,7 @@ class _loginbody extends State<loginbody> {
   final ValueNotifier<String> _Cap = ValueNotifier<String>("");
   String capid = "";
   String SToken = "";
-  var w = cWeb();
+  var w = CWeb();
 
   void idlisten(String value) {
     _canLogin.value = (idController.text.length == 13 &&
@@ -143,7 +138,6 @@ class _loginbody extends State<loginbody> {
                   "saveID",
                   json.encode(
                       {"id": idController.text, "pwd": pwdController.text}));
-              print("set");
             } else {
               prefs.remove("saveID");
             }
@@ -181,12 +175,14 @@ class _loginbody extends State<loginbody> {
         setState(() {
           saveID = true;
         });
+        FocusScope.of(context).requestFocus(_capFocus);
       }
     });
   }
 
   var lastPopTime;
   bool saveID = false;
+  final FocusNode _capFocus = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -234,6 +230,7 @@ class _loginbody extends State<loginbody> {
                   child: Container(
                     margin: const EdgeInsets.only(right: 15),
                     child: TextField(
+                      focusNode: _capFocus,
                       controller: capController,
                       onChanged: idlisten,
                       decoration: const InputDecoration(hintText: "验证码"),
