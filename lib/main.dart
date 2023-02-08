@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,7 +22,6 @@ class zxwApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    late DateTime lastPopTime;
     return MaterialApp(
       title: '座学问',
       theme: ThemeData(
@@ -34,6 +34,7 @@ class zxwApp extends StatelessWidget {
       },
       initialRoute: Routes.home,
       navigatorKey: Routes.navigatorKey,
+      builder: EasyLoading.init(),
     );
   }
 }

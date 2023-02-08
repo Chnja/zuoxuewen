@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_pickers/pickers.dart';
 import 'package:flutter_pickers/style/default_style.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import "./utils/web.dart";
 
 class timeChange extends StatefulWidget {
@@ -135,40 +138,76 @@ class _timeChangebody extends State<timeChange> {
     int timeStart = int.parse(tmp[0]) * 60 + int.parse(tmp[1]);
     tmp = timeSwitch["end"].split(":");
     int timeEnd = int.parse(tmp[0]) * 60 + int.parse(tmp[1]);
-    await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: const Text("变更时间有丢失座位风险，确认继续吗?"),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: ButtonStyle(
-                      overlayColor:
-                          MaterialStateProperty.all(Colors.grey.shade50),
-                      foregroundColor: MaterialStateProperty.all(Colors.grey)),
-                  child: const Text("点错了")),
-              TextButton(
-                  style: ButtonStyle(
-                      overlayColor:
-                          MaterialStateProperty.all(Colors.orange.shade50),
-                      foregroundColor:
-                          MaterialStateProperty.all(Colors.orange)),
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    await cancel();
-                    await bookSeat(dates, timeStart, timeEnd);
-                    await onFresh();
-                  },
-                  child: const Text("确定变更"))
-            ],
-          );
-        });
+
+    final prefs = await SharedPreferences.getInstance();
+    String? tmp2 = prefs.getString("libList");
+    String seatId = "";
+    if (tmp2 != null) {
+      Map tmpj = json.decode(tmp2);
+      List libList = tmpj["libList"];
+      for (Map building in libList) {
+        for (Map floor in building["floor"]) {
+          if (bookStatus["loc"].startsWith(floor["name"])) {
+            for (Map room in floor["room"]) {
+              if (bookStatus["loc"].endsWith(room["name"])) {
+                for (Map seat in room["seat"]) {
+                  if (bookStatus["num"] == seat["name"]) {
+                    seatId = seat["id"];
+                    break;
+                  }
+                }
+                break;
+              }
+            }
+            break;
+          }
+        }
+      }
+    } else {
+      EasyLoading.showInfo('变更时间需本地数据支持，\n请更新本地数据！',
+          duration: const Duration(seconds: 2));
+    }
+    if (seatId == "") {
+      EasyLoading.showInfo('本地数据中未找到该座位，\n无法自动变更，\n请更新本地数据！',
+          duration: const Duration(seconds: 2));
+    } else {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              content: const Text("变更时间有丢失座位风险，确认继续吗?"),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ButtonStyle(
+                        overlayColor:
+                            MaterialStateProperty.all(Colors.grey.shade50),
+                        foregroundColor:
+                            MaterialStateProperty.all(Colors.grey)),
+                    child: const Text("点错了")),
+                TextButton(
+                    style: ButtonStyle(
+                        overlayColor:
+                            MaterialStateProperty.all(Colors.orange.shade50),
+                        foregroundColor:
+                            MaterialStateProperty.all(Colors.orange)),
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await cancel();
+                      await bookSeat(dates, timeStart, timeEnd, seatId);
+                      await onFresh();
+                    },
+                    child: const Text("确定变更"))
+              ],
+            );
+          });
+    }
   }
 
-  Future<bool> bookSeat(String date, int start, int end) async {
+  Future<bool> bookSeat(String date, int start, int end, String seatId) async {
+    Navigator.of(context).pop();
     EasyLoading.show(status: '选座中...');
     var resp = await w.get("self");
     RegExp match = RegExp(r'_TOKEN" value="([^]*?)"');
@@ -180,23 +219,27 @@ class _timeChangebody extends State<timeChange> {
       "date": date,
       "start": "$start",
       "end": "$end",
-      "seat": bookStatus["seatId"]
+      "seat": seatId
     });
     match = RegExp(r'系统已经为您预定好了');
     if (match.hasMatch(resp.body)) {
-      EasyLoading.showSuccess('变更成功');
-      EasyLoading.dismiss();
+      EasyLoading.showSuccess('变更成功', duration: const Duration(seconds: 1));
       return true;
     }
-    EasyLoading.showError('变更失败');
-    EasyLoading.dismiss();
+    EasyLoading.showError('变更失败', duration: const Duration(seconds: 1));
     return false;
   }
 
   void selectTime() {
     Map multiData;
-    List tmp = timeStartEnd(bookStatus["start"], bookStatus["end"]);
-    multiData = timeRange(tmp[0], tmp[1]);
+    RegExp match = RegExp(r'月([^]*?)日');
+    var matchres = match.firstMatch(bookStatus["date"]);
+    if (int.parse(matchres?.group(1) ?? "") != DateTime.now().day) {
+      multiData = timeRange(bookStatus["start"], bookStatus["end"]);
+    } else {
+      List tmp = timeStartEnd(bookStatus["start"], bookStatus["end"]);
+      multiData = timeRange(tmp[0], tmp[1]);
+    }
     Pickers.showMultiLinkPicker(context,
         selectData: [timeSwitch["start"], timeSwitch["end"]],
         data: multiData,

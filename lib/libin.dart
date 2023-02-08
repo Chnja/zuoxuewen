@@ -232,8 +232,8 @@ class _libinbody extends State<LibInBody> {
                                   ),
                                   child: const Text("变更时间")),
                               ElevatedButton(
-                                onPressed: () async {
-                                  await showDialog(
+                                onPressed: () {
+                                  showDialog(
                                       context: context,
                                       builder: (BuildContext context) {
                                         return AlertDialog(
@@ -326,7 +326,9 @@ class _libinbody extends State<LibInBody> {
             bookStatus: {
               "date": _bookStatus.value["date"],
               "start": tmp[0],
-              "end": tmp[1]
+              "end": tmp[1],
+              "loc": _bookStatus.value["loc"],
+              "num": _bookStatus.value["num"]
             },
             onFresh: refresh,
           );
@@ -588,8 +590,7 @@ class _libinbody extends State<LibInBody> {
       }
       await refresh();
     } else {
-      EasyLoading.showError('失败');
-      EasyLoading.dismiss();
+      EasyLoading.showError('失败', duration: const Duration(seconds: 1));
     }
   }
 
@@ -601,11 +602,9 @@ class _libinbody extends State<LibInBody> {
       "id": _bookStatus.value["id"]
     });
     if (resp.statusCode == 302) {
-      EasyLoading.showSuccess('取消成功');
-      EasyLoading.dismiss();
+      EasyLoading.showSuccess('取消成功', duration: const Duration(seconds: 1));
     } else {
-      EasyLoading.showError('取消失败');
-      EasyLoading.dismiss();
+      EasyLoading.showError('取消失败', duration: const Duration(seconds: 1));
     }
     return;
   }
@@ -615,11 +614,9 @@ class _libinbody extends State<LibInBody> {
     var resp = await w.get("user/stopUsing");
     var body = json.decode(resp.body);
     if (body["status"] == "success") {
-      EasyLoading.showSuccess('结束成功');
-      EasyLoading.dismiss();
+      EasyLoading.showSuccess('结束成功', duration: const Duration(seconds: 1));
     } else {
-      EasyLoading.showError('结束失败');
-      EasyLoading.dismiss();
+      EasyLoading.showError('结束失败', duration: const Duration(seconds: 1));
     }
     return;
   }

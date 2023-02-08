@@ -12,7 +12,6 @@ class CWeb {
 
   CWeb() {
     client = http.Client();
-    // TODO: 针对失效情况和系统维护状态的响应及提示
   }
 
   void _setCookie(http.Response response) async {
@@ -59,6 +58,9 @@ class CWeb {
 
   bool respHandle(http.Response response) {
     if (Routes.history.length == 1 && Routes.history[0] == Routes.home) {
+      return true;
+    }
+    if (response.statusCode == 302) {
       return true;
     }
     RegExp match = RegExp(r'<');
