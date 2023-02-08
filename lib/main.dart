@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// import 'package:http/http.dart' as http;
 import "./utils/web.dart";
 import 'package:fluttertoast/fluttertoast.dart';
 import "./libin.dart";
@@ -13,7 +13,6 @@ void main() {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark));
-  // runApp(const MyApp());
   runApp(const zxwApp());
 }
 
@@ -28,41 +27,56 @@ class zxwApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Scaffold(
-          body: Container(
-              margin: const EdgeInsets.fromLTRB(60, 100, 60, 20),
-              child: Column(mainAxisAlignment: MainAxisAlignment.start,
-                  // crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                        margin: const EdgeInsets.only(bottom: 50),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              "images/chair.png",
-                              width: 60,
-                              height: 60,
-                            ),
-                            Container(
-                                margin: const EdgeInsets.only(left: 10),
-                                decoration: const BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                        width: 3, color: Colors.yellow),
-                                  ),
-                                ),
-                                child: const Text("座学问",
-                                    textAlign: TextAlign.left,
-                                    style: TextStyle(
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.w800,
-                                    )))
-                          ],
-                        )),
-                    const loginbody()
-                  ]))),
+      routes: {
+        Routes.home: (context) => const LogIn(),
+        "/libin": (context) => const LibIn()
+        // Routes.toLoginPage: (context) => const LogIn()
+      },
+      initialRoute: Routes.home,
+      navigatorKey: Routes.navigatorKey,
     );
+  }
+}
+
+class LogIn extends StatelessWidget {
+  const LogIn({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Container(
+            margin: const EdgeInsets.fromLTRB(60, 100, 60, 20),
+            child: Column(mainAxisAlignment: MainAxisAlignment.start,
+                // crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                      margin: const EdgeInsets.only(bottom: 50),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            "images/chair.png",
+                            width: 60,
+                            height: 60,
+                          ),
+                          Container(
+                              margin: const EdgeInsets.only(left: 10),
+                              decoration: const BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                      width: 3, color: Colors.yellow),
+                                ),
+                              ),
+                              child: const Text("座学问",
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w800,
+                                  )))
+                        ],
+                      )),
+                  const loginbody()
+                ])));
   }
 }
 
@@ -81,9 +95,9 @@ class _loginbody extends State<loginbody> {
   final ValueNotifier<String> _Cap = ValueNotifier<String>("");
   String capid = "";
   String SToken = "";
-  var w = CWeb();
+  CWeb w = CWeb();
 
-  void idlisten(String value) {
+  void idlisten([String? value]) {
     _canLogin.value = (idController.text.length == 13 &&
         pwdController.text != "" &&
         capController.text.length == 4);
@@ -93,6 +107,8 @@ class _loginbody extends State<loginbody> {
   void fresh() {
     // print("fresh");
     capController.clear();
+    _Cap.value = "";
+    idlisten();
     w.get('login').then((resp) {
       // print(resp.headers);
       RegExp match = RegExp(r'SYNCHRONIZER_TOKEN" value="([^]*?)"');
@@ -146,11 +162,7 @@ class _loginbody extends State<loginbody> {
             msg: "登录成功",
             timeInSecForIosWeb: 2,
           );
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => LibIn(w: w)),
-            (route) => false,
-          );
+          Routes.pushReset("/libin");
         }
       } else {
         Fluttertoast.showToast(
@@ -285,21 +297,25 @@ class _loginbody extends State<loginbody> {
   }
 
   Widget _buildforcap(BuildContext context, String value, Widget? child) {
-    if (value == "") {
-      return Container(
-        color: Colors.white,
-      );
-    } else {
-      return Image.memory(
-        base64Decode(value),
-        gaplessPlayback: true,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: Colors.white,
-          );
-        },
-      );
-    }
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: value == ""
+          ? Center(
+              child: LoadingAnimationWidget.staggeredDotsWave(
+                size: 25,
+                color: Colors.black38,
+              ),
+            )
+          : Image.memory(
+              base64Decode(value),
+              gaplessPlayback: true,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.white,
+                );
+              },
+            ),
+    );
   }
 
   Widget _buildforlogin(BuildContext context, bool value, Widget? child) {
@@ -309,11 +325,7 @@ class _loginbody extends State<loginbody> {
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.all(Colors.blue),
           foregroundColor: MaterialStateProperty.all(Colors.white),
-          // animationDuration: const Duration(seconds: 100),
-          // elevation: MaterialStateProperty.all(20),
-          shape: MaterialStateProperty.all(
-              // Elevation: 2.0,
-              const CircleBorder()),
+          shape: MaterialStateProperty.all(const CircleBorder()),
         ),
         child: const Icon(Icons.keyboard_arrow_right),
       );

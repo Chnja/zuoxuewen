@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 class CWeb {
-  var client;
-  static String baseurl = "seat.lib.whu.edu.cn";
-  String Cookie = "";
+  static const String baseurl = "seat.lib.whu.edu.cn";
+  static String Cookie = "";
+  late http.Client client;
 
-  cWeb() {
+  CWeb() {
     client = http.Client();
     // TODO: 针对失效情况和系统维护状态的响应及提示
   }
@@ -21,44 +22,81 @@ class CWeb {
     }
   }
 
-  get(url, [Map<String, dynamic>? queryParameters = const {}]) async {
+  get(String url, [Map<String, dynamic>? queryParameters]) async {
     var urls = Uri.https(baseurl, url, queryParameters);
     try {
       var response = await client.get(urls,
           headers: {"cookie": Cookie}).timeout(const Duration(seconds: 10));
-      _setCookie(response);
-      RegExp match = RegExp(r'<');
-      if (match.hasMatch(response.body)) {
-        match = RegExp(r'首页');
-        if (match.hasMatch(response.body) && url != "login") {
-          Fluttertoast.showToast(
-            msg: "登录失效",
-            timeInSecForIosWeb: 2,
-          );
-        }
+      if (respHandle(response)) {
+        _setCookie(response);
         return response;
       }
-      json.decode(response.body);
-      return response;
     } on TimeoutException catch (_) {
       Fluttertoast.showToast(
         msg: "请求超时",
         timeInSecForIosWeb: 2,
       );
-    } on FormatException catch (_) {
+    }
+  }
+
+  post(String url, Map data) async {
+    var urls = Uri.https(baseurl, url);
+    try {
+      var response = await client.post(urls,
+          body: data,
+          headers: {"cookie": Cookie}).timeout(const Duration(seconds: 10));
+      if (respHandle(response)) {
+        _setCookie(response);
+        return response;
+      }
+    } on TimeoutException catch (_) {
       Fluttertoast.showToast(
-        msg: "系统错误",
+        msg: "请求超时",
         timeInSecForIosWeb: 2,
       );
     }
   }
 
-  post(url, data) async {
-    var urls = Uri.https(baseurl, url);
-    var response =
-        await client.post(urls, body: data, headers: {"cookie": Cookie});
-    _setCookie(response);
-    return response;
+  bool respHandle(http.Response response) {
+    if (Routes.history.length == 1 && Routes.history[0] == Routes.home) {
+      return true;
+    }
+    RegExp match = RegExp(r'<');
+    if (match.hasMatch(response.body)) {
+      match = RegExp(r'首页');
+      if (match.hasMatch(response.body)) {
+        Fluttertoast.showToast(
+          msg: "登录失效",
+          timeInSecForIosWeb: 2,
+        );
+        Routes.pushReset(Routes.home);
+        return false;
+      }
+      return true;
+    }
+    try {
+      json.decode(response.body);
+      return true;
+    } on FormatException catch (_) {
+      Fluttertoast.showToast(
+        msg: "系统错误",
+        timeInSecForIosWeb: 2,
+      );
+      Routes.pushReset(Routes.home);
+      return false;
+    }
+  }
+}
+
+class Routes {
+  static GlobalKey<NavigatorState> navigatorKey = GlobalKey();
+  static NavigatorState navigation = navigatorKey.currentState!;
+  static const String home = "/login";
+  static List<String> history = [home];
+
+  static Future pushReset(String name) {
+    history = [name];
+    return navigation.pushNamedAndRemoveUntil(name, (route) => false);
   }
 }
 

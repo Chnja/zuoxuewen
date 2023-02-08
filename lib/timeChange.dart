@@ -7,13 +7,11 @@ import "./utils/web.dart";
 class timeChange extends StatefulWidget {
   const timeChange({
     super.key,
-    required this.w,
     required this.cancel,
     required this.onFresh,
     required this.bookStatus,
   });
 
-  final CWeb w;
   final Function cancel;
   final Function onFresh;
   final Map bookStatus;
@@ -23,7 +21,7 @@ class timeChange extends StatefulWidget {
 }
 
 class _timeChangebody extends State<timeChange> {
-  late final CWeb w;
+  CWeb w = CWeb();
   late final Function cancel;
   late final Function onFresh;
   late final Map bookStatus;
@@ -32,7 +30,6 @@ class _timeChangebody extends State<timeChange> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 15, 20, 0),
       decoration: const BoxDecoration(
@@ -220,7 +217,6 @@ class _timeChangebody extends State<timeChange> {
     super.initState();
     EasyLoading.instance.indicatorType = EasyLoadingIndicatorType.cubeGrid;
     EasyLoading.instance.maskType = EasyLoadingMaskType.clear;
-    w = widget.w;
     bookStatus = widget.bookStatus;
     List tse = timeStartEnd(bookStatus["start"], bookStatus["end"]);
     setState(() {

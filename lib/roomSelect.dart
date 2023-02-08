@@ -12,12 +12,10 @@ class roomSelect extends StatefulWidget {
   const roomSelect({
     super.key,
     required this.showRoomId,
-    required this.w,
     required this.onFresh,
   });
 
   final List showRoomId;
-  final cWeb w;
   final Function onFresh;
 
   @override
@@ -26,7 +24,7 @@ class roomSelect extends StatefulWidget {
 
 class _roomSelectbody extends State<roomSelect> {
   late final List showRoomId;
-  late final cWeb w;
+  CWeb w = CWeb();
   late final Function onFresh;
   late Size Msize;
   Map timeSwitch = {};
@@ -34,7 +32,7 @@ class _roomSelectbody extends State<roomSelect> {
   List selectRooms = [];
   Map booking = {"status": 0, "msg": ""};
   Map moreSwitch = {"window": 2, "power": 1, "round": false};
-  Map windowpower = {
+  static const Map windowpower = {
     "window": ["不靠窗", "靠窗", "不限靠窗"],
     "power": ["无电源", "有电源", "不限电源"]
   };
@@ -42,310 +40,325 @@ class _roomSelectbody extends State<roomSelect> {
   @override
   Widget build(BuildContext context) {
     Msize = MediaQuery.of(context).size;
-    return Container(
-      // height: 600,
-      height: Msize.height * 5 / 6,
-      padding: const EdgeInsets.fromLTRB(20, 15, 20, 0),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-      ),
-      child: DefaultTabController(
-          length: showRoomId.length,
-          child: Scaffold(
-              backgroundColor: Colors.transparent,
-              appBar: PreferredSize(
-                  preferredSize: const Size.fromHeight(200),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ElevatedButton(
-                              onPressed: selectTime,
-                              style: ButtonStyle(
-                                elevation: MaterialStateProperty.all(0),
-                                backgroundColor: MaterialStateProperty.all(
-                                    Colors.green.shade50),
-                                foregroundColor:
-                                    MaterialStateProperty.all(Colors.black),
-                              ),
-                              child: Container(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 6),
-                                  width: 120,
-                                  child: Column(
-                                    children: [
-                                      const Text("开始时间"),
-                                      Text(
-                                        "${timeSwitch['start']}",
-                                        style: const TextStyle(fontSize: 18),
-                                      )
-                                    ],
-                                  ))),
-                          const Icon(
-                            Icons.keyboard_double_arrow_right,
-                            color: Colors.green,
-                          ),
-                          ElevatedButton(
-                              onPressed: selectTime,
-                              style: ButtonStyle(
-                                elevation: MaterialStateProperty.all(0),
-                                backgroundColor: MaterialStateProperty.all(
-                                    Colors.green.shade50),
-                                foregroundColor:
-                                    MaterialStateProperty.all(Colors.black),
-                              ),
-                              child: Container(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 6),
-                                  width: 120,
-                                  child: Column(
-                                    children: [
-                                      const Text("结束时间"),
-                                      Text(
-                                        "${timeSwitch['end']}",
-                                        style: const TextStyle(fontSize: 18),
-                                      )
-                                    ],
-                                  ))),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: booking["status"] != 0
-                            ? Container()
-                            : TabBar(
-                                labelColor: Colors.black,
-                                isScrollable: true,
-                                tabs: showRoomId
-                                    .map((e) => Tab(text: e["name"]))
-                                    .toList()),
-                      )
-                    ],
-                  )),
-              body: Builder(builder: (BuildContext context) {
-                var controller = DefaultTabController.of(context);
-                controller?.addListener(() {
-                  if (controller.index == controller.animation?.value) {
-                    barIndex = controller.index;
-                    checkboxChange(showRoomId);
-                    // print(controller.index);
-                  }
-                });
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: booking["status"] != 0
-                      ? Center(
-                          child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            LoadingAnimationWidget.staggeredDotsWave(
-                              size: 60,
-                              color: Colors.green.shade300,
-                            ),
-                            const SizedBox(height: 10),
-                            Text("${booking["msg"]}")
-                          ],
-                        ))
-                      : TabBarView(
-                          children: showRoomId
-                              .map((e) => CustomScrollView(
-                                  slivers: e["room"]
-                                      .map<Widget>((x) => SliverList(
-                                              delegate:
-                                                  SliverChildListDelegate([
-                                            CCheckbox(
-                                              order: x["checked"],
-                                              title: "${x["name"]}",
-                                              subtitle:
-                                                  "${x['floor']} / 共${x['seats']}座位",
-                                              value: (x["checked"] > 0),
-                                              onChanged: (value) {
-                                                x["checked"] = value ? 100 : 0;
-                                                checkboxChange(showRoomId);
-                                              },
-                                            )
-                                          ])))
-                                      .toList()))
-                              .toList()),
-                );
-              }),
-              bottomNavigationBar: AnimatedSize(
-                alignment: Alignment.bottomCenter,
-                duration: const Duration(milliseconds: 300),
-                child: booking["status"] != 0
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: bindBookButton,
-                          style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all(Colors.red),
-                          ),
-                          child: const Text(
-                            "取消",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      )
-                    : Column(
+    return WillPopScope(
+        onWillPop: () async {
+          if (booking["status"] == 1) {
+            bindBookButton();
+            return false;
+          }
+          return true;
+        },
+        child: Container(
+          // height: 600,
+          height: Msize.height * 5 / 6,
+          padding: const EdgeInsets.fromLTRB(20, 15, 20, 0),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+          ),
+          child: DefaultTabController(
+              length: showRoomId.length,
+              child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  appBar: PreferredSize(
+                      preferredSize: const Size.fromHeight(200),
+                      child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SwitchListTile(
-                            value: timeSwitch["switch"],
-                            onChanged: (value) {
-                              if (value) {
-                                setState(() {
-                                  timeSwitch = {
-                                    "switch": value,
-                                    "start": "8:00",
-                                    "end": "22:30"
-                                  };
-                                });
-                              } else {
-                                List tse = timeStartEnd();
-                                setState(() {
-                                  timeSwitch = {
-                                    "switch": value,
-                                    "start": tse[0],
-                                    "end": tse[1]
-                                  };
-                                });
-                              }
-                            },
-                            title: const Text("预约明日"),
+                          Container(
+                            width: 80,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10)),
+                            ),
                           ),
+                          const SizedBox(height: 15),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                  flex: 1,
-                                  child: ElevatedButton(
-                                      style: ButtonStyle(
-                                        elevation: MaterialStateProperty.all(0),
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.orange.shade50),
-                                        foregroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.orange),
-                                      ),
-                                      onPressed: () {
-                                        selectMore("window");
-                                      },
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                              ElevatedButton(
+                                  onPressed: selectTime,
+                                  style: ButtonStyle(
+                                    elevation: MaterialStateProperty.all(0),
+                                    backgroundColor: MaterialStateProperty.all(
+                                        Colors.green.shade50),
+                                    foregroundColor:
+                                        MaterialStateProperty.all(Colors.black),
+                                  ),
+                                  child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 6),
+                                      width: 120,
+                                      child: Column(
                                         children: [
-                                          const Icon(Icons.sensor_window),
+                                          const Text("开始时间"),
                                           Text(
-                                              "${windowpower['window'][moreSwitch['window']]}")
+                                            "${timeSwitch['start']}",
+                                            style:
+                                                const TextStyle(fontSize: 18),
+                                          )
                                         ],
                                       ))),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                  flex: 1,
-                                  child: ElevatedButton(
-                                      style: ButtonStyle(
-                                        elevation: MaterialStateProperty.all(0),
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.orange.shade50),
-                                        foregroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.orange),
-                                      ),
-                                      onPressed: () {
-                                        selectMore("power");
-                                      },
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                              const Icon(
+                                Icons.keyboard_double_arrow_right,
+                                color: Colors.green,
+                              ),
+                              ElevatedButton(
+                                  onPressed: selectTime,
+                                  style: ButtonStyle(
+                                    elevation: MaterialStateProperty.all(0),
+                                    backgroundColor: MaterialStateProperty.all(
+                                        Colors.green.shade50),
+                                    foregroundColor:
+                                        MaterialStateProperty.all(Colors.black),
+                                  ),
+                                  child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 6),
+                                      width: 120,
+                                      child: Column(
                                         children: [
-                                          const Icon(Icons.power),
+                                          const Text("结束时间"),
                                           Text(
-                                              "${windowpower['power'][moreSwitch['power']]}")
-                                        ],
-                                      ))),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                  flex: 1,
-                                  child: ElevatedButton(
-                                      style: ButtonStyle(
-                                        elevation: MaterialStateProperty.all(0),
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.orange.shade50),
-                                        foregroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.orange),
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          moreSwitch['round'] =
-                                              !moreSwitch['round'];
-                                        });
-                                      },
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(Icons.table_bar),
-                                          Text(
-                                              "${moreSwitch['round'] ? '不限' : '非'}圆桌")
+                                            "${timeSwitch['end']}",
+                                            style:
+                                                const TextStyle(fontSize: 18),
+                                          )
                                         ],
                                       ))),
                             ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.only(bottom: 10),
+                          const SizedBox(height: 5),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: booking["status"] != 0
+                                ? Container()
+                                : TabBar(
+                                    labelColor: Colors.black,
+                                    isScrollable: true,
+                                    tabs: showRoomId
+                                        .map((e) => Tab(text: e["name"]))
+                                        .toList()),
+                          )
+                        ],
+                      )),
+                  body: Builder(builder: (BuildContext context) {
+                    var controller = DefaultTabController.of(context);
+                    controller?.addListener(() {
+                      if (controller.index == controller.animation?.value) {
+                        barIndex = controller.index;
+                        checkboxChange(showRoomId);
+                        // print(controller.index);
+                      }
+                    });
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: booking["status"] != 0
+                          ? Center(
+                              child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                LoadingAnimationWidget.staggeredDotsWave(
+                                  size: 60,
+                                  color: Colors.green.shade300,
+                                ),
+                                const SizedBox(height: 10),
+                                Text("${booking["msg"]}")
+                              ],
+                            ))
+                          : TabBarView(
+                              children: showRoomId
+                                  .map((e) => CustomScrollView(
+                                      slivers: e["room"]
+                                          .map<Widget>((x) => SliverList(
+                                                  delegate:
+                                                      SliverChildListDelegate([
+                                                CCheckbox(
+                                                  order: x["checked"],
+                                                  title: "${x["name"]}",
+                                                  subtitle:
+                                                      "${x['floor']} / 共${x['seats']}座位",
+                                                  value: (x["checked"] > 0),
+                                                  onChanged: (value) {
+                                                    x["checked"] =
+                                                        value ? 100 : 0;
+                                                    checkboxChange(showRoomId);
+                                                  },
+                                                )
+                                              ])))
+                                          .toList()))
+                                  .toList()),
+                    );
+                  }),
+                  bottomNavigationBar: AnimatedSize(
+                    alignment: Alignment.bottomCenter,
+                    duration: const Duration(milliseconds: 300),
+                    child: booking["status"] != 0
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: (selectRooms.isNotEmpty &&
-                                      timeSwitch["start"] != "无可用时间")
-                                  ? bindBookButton
-                                  : null,
+                              onPressed: bindBookButton,
                               style: ButtonStyle(
-                                foregroundColor:
-                                    MaterialStateProperty.all(Colors.white),
                                 backgroundColor:
-                                    MaterialStateProperty.resolveWith<Color>(
-                                        (states) {
-                                  if (states.contains(MaterialState.disabled)) {
-                                    return Colors.green.shade100;
-                                  }
-                                  return Colors.green;
-                                }),
+                                    MaterialStateProperty.all(Colors.red),
                               ),
-                              child: Text(
-                                selectRooms.isNotEmpty
-                                    ? '选座（已选择${selectRooms.length}个房间）'
-                                    : '选择房间',
-                                style: const TextStyle(
+                              child: const Text(
+                                "取消",
+                                style: TextStyle(
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
                             ),
                           )
-                        ],
-                      ),
-              ))),
-    );
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SwitchListTile(
+                                value: timeSwitch["switch"],
+                                onChanged: (value) {
+                                  if (value) {
+                                    setState(() {
+                                      timeSwitch = {
+                                        "switch": value,
+                                        "start": "8:00",
+                                        "end": "22:30"
+                                      };
+                                    });
+                                  } else {
+                                    List tse = timeStartEnd();
+                                    setState(() {
+                                      timeSwitch = {
+                                        "switch": value,
+                                        "start": tse[0],
+                                        "end": tse[1]
+                                      };
+                                    });
+                                  }
+                                },
+                                title: const Text("预约明日"),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      flex: 1,
+                                      child: ElevatedButton(
+                                          style: ButtonStyle(
+                                            elevation:
+                                                MaterialStateProperty.all(0),
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.orange.shade50),
+                                            foregroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.orange),
+                                          ),
+                                          onPressed: () {
+                                            selectMore("window");
+                                          },
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              const Icon(Icons.sensor_window),
+                                              Text(
+                                                  "${windowpower['window'][moreSwitch['window']]}")
+                                            ],
+                                          ))),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                      flex: 1,
+                                      child: ElevatedButton(
+                                          style: ButtonStyle(
+                                            elevation:
+                                                MaterialStateProperty.all(0),
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.orange.shade50),
+                                            foregroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.orange),
+                                          ),
+                                          onPressed: () {
+                                            selectMore("power");
+                                          },
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              const Icon(Icons.power),
+                                              Text(
+                                                  "${windowpower['power'][moreSwitch['power']]}")
+                                            ],
+                                          ))),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                      flex: 1,
+                                      child: ElevatedButton(
+                                          style: ButtonStyle(
+                                            elevation:
+                                                MaterialStateProperty.all(0),
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.orange.shade50),
+                                            foregroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.orange),
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              moreSwitch['round'] =
+                                                  !moreSwitch['round'];
+                                            });
+                                          },
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              const Icon(Icons.table_bar),
+                                              Text(
+                                                  "${moreSwitch['round'] ? '不限' : '非'}圆桌")
+                                            ],
+                                          ))),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: (selectRooms.isNotEmpty &&
+                                          timeSwitch["start"] != "无可用时间")
+                                      ? bindBookButton
+                                      : null,
+                                  style: ButtonStyle(
+                                    foregroundColor:
+                                        MaterialStateProperty.all(Colors.white),
+                                    backgroundColor: MaterialStateProperty
+                                        .resolveWith<Color>((states) {
+                                      if (states
+                                          .contains(MaterialState.disabled)) {
+                                        return Colors.green.shade100;
+                                      }
+                                      return Colors.green;
+                                    }),
+                                  ),
+                                  child: Text(
+                                    selectRooms.isNotEmpty
+                                        ? '选座（已选择${selectRooms.length}个房间）'
+                                        : '选择房间',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                  ))),
+        ));
   }
 
   void selectTime() {
@@ -392,7 +405,6 @@ class _roomSelectbody extends State<roomSelect> {
       selectRooms = selectRoom;
     });
   }
-
 
   void bindBookButton() {
     if (booking["status"] == 0) {
@@ -510,7 +522,6 @@ class _roomSelectbody extends State<roomSelect> {
     setState(() {
       timeSwitch = {"start": tse[0], "end": tse[1], "switch": false};
     });
-    w = widget.w;
     onFresh = widget.onFresh;
   }
 }

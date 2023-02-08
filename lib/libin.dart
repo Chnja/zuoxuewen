@@ -13,38 +13,28 @@ import "./timeChange.dart";
 class LibIn extends StatelessWidget {
   const LibIn({
     Key? key,
-    required this.w,
   }) : super(key: key);
-  final CWeb w;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: '座学问',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: Scaffold(
-          body: libinbody(w: w),
-        ),
-        builder: EasyLoading.init());
+    return const Scaffold(
+      body: LibInBody(),
+    );
   }
 }
 
-class libinbody extends StatefulWidget {
-  const libinbody({
+class LibInBody extends StatefulWidget {
+  const LibInBody({
     Key? key,
-    required this.w,
   }) : super(key: key);
-  final CWeb w;
 
   @override
-  State<libinbody> createState() => _libinbody();
+  State<LibInBody> createState() => _libinbody();
 }
 
-class _libinbody extends State<libinbody> {
-  late final CWeb w;
-  List bookshow = [
+class _libinbody extends State<LibInBody> {
+  CWeb w = CWeb();
+  static const List bookshow = [
     {"value": "pz", "name": "凭证号"},
     {"value": "date", "name": "日　期"},
     {"value": "time", "name": "时　间"},
@@ -68,12 +58,13 @@ class _libinbody extends State<libinbody> {
                   const Duration(seconds: 2)) {
             lastPopTime = DateTime.now();
             Fluttertoast.showToast(
-              msg: "再按一次退出",
+              msg: "再按一次退出登录",
               timeInSecForIosWeb: 2,
             );
             return false;
           } else {
-            return true;
+            Routes.pushReset(Routes.home);
+            return false;
           }
         },
         child: Column(
@@ -130,7 +121,6 @@ class _libinbody extends State<libinbody> {
           //     valueListenable: _showRoomId, builder: _buildforroom);
           return roomSelect(
             showRoomId: showRoomId,
-            w: w,
             onFresh: refresh,
           );
         });
@@ -332,7 +322,6 @@ class _libinbody extends State<libinbody> {
         backgroundColor: Colors.transparent,
         builder: (context) {
           return timeChange(
-            w: w,
             cancel: bindcancel,
             bookStatus: {
               "date": _bookStatus.value["date"],
@@ -541,7 +530,7 @@ class _libinbody extends State<libinbody> {
         matchres = match.firstMatch(bookNow!);
         bookStatusTemp["token"] = matchres?.group(1);
         match = RegExp(r'id" value="([^]*?)"');
-        matchres = match.firstMatch(bookNow!);
+        matchres = match.firstMatch(bookNow);
         bookStatusTemp["id"] = matchres?.group(1);
         // print(bookStatus);
         resp = await w.get("view", {"id": bookStatusTemp["id"]});
@@ -562,9 +551,9 @@ class _libinbody extends State<libinbody> {
       }
       match = RegExp(r'使用中');
       RegExp match2 = RegExp(r'已暂时离开');
-      if (match.hasMatch(hr!) || match2.hasMatch(hr!)) {
+      if (match.hasMatch(hr) || match2.hasMatch(hr)) {
         match = RegExp(r'id=([^]*?)&');
-        var matchres = match.firstMatch(hr!);
+        var matchres = match.firstMatch(hr);
         bookStatusTemp["id"] = matchres?.group(1);
         // print(bookStatus);
         resp = await w.get("view", {"id": bookStatusTemp["id"]});
@@ -648,7 +637,7 @@ class _libinbody extends State<libinbody> {
     var matchress = match.allMatches(buildingbody);
     var loadingShow = [];
     List libList = matchress.map((e) {
-      var tmp = e?.group(1)?.split("'>");
+      var tmp = e.group(1)?.split("'>");
       loadingShow.add({"status": 0, "name": tmp?[1]});
       return {"id": tmp?[0], "name": tmp?[1], "floor": []};
     }).toList();
@@ -669,7 +658,7 @@ class _libinbody extends State<libinbody> {
       match = RegExp(r'value="([^]*?)<');
       matchress = match.allMatches(resp.body);
       List floorList = matchress.map((e) {
-        var tmp = e?.group(1)?.split('">');
+        var tmp = e.group(1)?.split('">');
         return {"id": tmp?[0], "name": tmp?[1], "room": []};
       }).toList();
       _cloudStatus.value["loadingShow"][loadingBuilding]["floors"] =
@@ -704,7 +693,7 @@ class _libinbody extends State<libinbody> {
           match = RegExp(r'<li id([^]*?)</li>');
           matchress = match.allMatches(resp.body);
           List seatList = matchress.map((e) {
-            var tmp = e?.group(1);
+            var tmp = e.group(1);
             var tmpid = RegExp(r'seat_([^]*?)"');
             var tmpname = RegExp(r'seatNum">([^]*?)<');
             return {
@@ -771,7 +760,6 @@ class _libinbody extends State<libinbody> {
   @override
   void initState() {
     super.initState();
-    w = widget.w;
     // print("init");
     EasyLoading.instance.indicatorType = EasyLoadingIndicatorType.cubeGrid;
     EasyLoading.instance.maskType = EasyLoadingMaskType.clear;
