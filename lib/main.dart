@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import "./utils/web.dart";
 import 'package:fluttertoast/fluttertoast.dart';
 import "./libin.dart";
+import "./about.dart";
 // import "./zhlj.dart";
 
 void main() {
@@ -29,7 +30,8 @@ class zxwApp extends StatelessWidget {
       ),
       routes: {
         Routes.home: (context) => const LogIn(),
-        "/libin": (context) => const LibIn()
+        "/libin": (context) => const LibIn(),
+        "/about": (context) => const About()
         // Routes.toLoginPage: (context) => const LogIn()
       },
       initialRoute: Routes.home,
@@ -55,11 +57,14 @@ class LogIn extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.asset(
-                            "images/chair.png",
-                            width: 60,
-                            height: 60,
-                          ),
+                          Container(
+                              width: 50,
+                              height: 50,
+                              decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  image: DecorationImage(
+                                      image: AssetImage('images/icon1.png'),
+                                      fit: BoxFit.cover))),
                           Container(
                               margin: const EdgeInsets.only(left: 10),
                               decoration: const BoxDecoration(

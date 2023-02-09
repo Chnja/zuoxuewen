@@ -75,6 +75,23 @@ class _libinbody extends State<LibInBody> {
                 valueListenable: _bookButtonShow, builder: _buildforbookbutton),
             ValueListenableBuilder(
                 valueListenable: _cloudStatus, builder: _buildforcloud),
+            Expanded(
+              flex: 1,
+              child: Container(),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/about');
+              },
+              style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all(Colors.grey),
+                overlayColor: MaterialStateProperty.all(Colors.transparent),
+              ),
+              child: const Text(
+                "关于<座学问>",
+                style: TextStyle(fontSize: 12),
+              ),
+            )
           ],
         ));
   }
