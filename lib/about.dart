@@ -41,7 +41,7 @@ class About extends StatelessWidget {
                           text: add2006("　　座学问"),
                           style: const TextStyle(
                               color: Color(0xFF012654),
-                              fontWeight: FontWeight.bold)),
+                              fontWeight: FontWeight.w900)),
                       TextSpan(text: add2006(" 是一个面向武汉大学学生的图书馆预约APP，其源自")),
                       TextSpan(
                           text: add2006("微信小程序·EI青年"),
@@ -57,7 +57,9 @@ class About extends StatelessWidget {
                     "　　2019年10月，开始编写图书馆选座功能的独立APP，最开始选择的技术路线是Electron+Vue，感觉调试还是挺烦的，加上那段时间事情很多、图书馆选座Web也逐步后端渲染，整个项目就不了了之。"),
                 textAlign: TextAlign.justify,
                 style: const TextStyle(letterSpacing: -1)),
-            Text(add2006("　　2023年1月25日凌晨1点，本项目使用Flutter重启...纪念一下，我不但来过，而且走下去了。多说一句，本APP仅与图书馆做交互，不需要后台服务器，也没有账号系统，同时代码全部开源。放心，你的数据很安全。"),
+            Text(
+                add2006(
+                    "　　2023年1月25日凌晨1点，本项目使用Flutter重启...纪念一下，我不但来过，而且走下去了。多说一句，本APP仅与图书馆做交互，不需要后台服务器，也没有账号系统，同时代码全部开源。放心，你的数据很安全。"),
                 textAlign: TextAlign.justify,
                 style: const TextStyle(letterSpacing: -1)),
             const SizedBox(
@@ -72,7 +74,9 @@ class About extends StatelessWidget {
             ),
             InkWell(
                 child: const Text('<访问Github>'),
-                onTap: () => launchUrl(Uri.parse('https://github.com/Chnja/zuoxuewen'))),
+                onTap: () => launchUrl(
+                    Uri.parse('https://github.com/Chnja/zuoxuewen'),
+                    mode: LaunchMode.externalApplication)),
             section(
                 "亮点",
                 Column(
