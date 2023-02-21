@@ -490,6 +490,8 @@ class _roomSelectbody extends State<roomSelect> {
           return;
         }
       }
+      await Future.delayed(const Duration(seconds: 1));
+      await searchRoom(date, start, end, index + 1);
     }
   }
 
